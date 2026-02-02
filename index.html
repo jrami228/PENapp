@@ -67,6 +67,49 @@
       font-size: 14px;
       line-height: 1.1;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Tooltip styling */
+    .info-wrapper {
+      position: relative;
+      display: inline-flex;
+      margin-left: 12px;
+      cursor: help;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .info-icon {
+      font-size: 18px;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .tooltip {
+      visibility: hidden;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background-color: var(--term-bg);
+      color: var(--term-yellow);
+      text-align: center;
+      padding: 6px 12px;
+      border: 2px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-size: 11px;
+      white-space: nowrap;
+      z-index: 100;
+      font-weight: normal;
+      font-family: inherit;
+    }
+
+    .info-wrapper:hover .tooltip {
+      visibility: visible;
     }
 
     .subbanner{
@@ -192,10 +235,16 @@
   <div class="frame">
     <div class="container" role="application">
       <header>
-        <div class="banner">EVENT INFORMATION</div>
+        <div class="banner">
+          <span>EVENT INFORMATION</span>
+          <div class="info-wrapper" aria-label="Support Information">
+            <span class="info-icon">ⓘ</span>
+            <div class="tooltip">If broken, email ramirez.jorge@live.com</div>
+          </div>
+        </div>
         <div class="subbanner">
           <div class="title">66-Character Line Formatter</div>
-          <div class="hint">Tabs → 4 spaces | List Detection | Blank Line Preservation</div>
+          <div class="hint">Detects numeric, alpha, and bullet lists</div>
         </div>
       </header>
 
@@ -262,17 +311,11 @@
 
       await new Promise(r => setTimeout(r, 50));
       
-      // Step 1: Normalize structure
       let str = raw.replace(/\t/g, '    ');
       
-      // Use a hidden token to preserve double-newlines (list breaks)
       const BREAK_TOKEN = " \u0007 ";
       str = str.replace(/\n\n+/g, BREAK_TOKEN);
-      
-      // Convert single newlines to spaces for reflow
       str = str.replace(/\n/g, ' ');
-      
-      // Collapse multiple spaces into one (Handles the "extra spaces" requirement)
       str = str.replace(/\s\s+/g, ' ');
       str = str.trim();
       
@@ -281,14 +324,12 @@
       let lines = [];
       let currentLine = "";
 
-      // List markers trigger (dash, bullet, or number sequence)
-      const listMarkerRegex = /^([-–—•\*]|\d+\.)$/;
+      const listMarkerRegex = /^([-–—•\*]|\d+\.|[a-z]\.)$/i;
       const words = str.split(' ');
 
       for (let word of words) {
           if (word === "") continue;
 
-          // Check for hard break token (from double newlines)
           if (word === "\u0007") {
             if (currentLine.trim().length > 0) {
               lines.push(currentLine.trimEnd());
@@ -299,7 +340,6 @@
 
           const isMarker = listMarkerRegex.test(word);
 
-          // If word is a marker OR we are forced into a new item after a colon-break
           if (isMarker && currentLine.trim().length > 0) {
               lines.push(currentLine.trimEnd());
               currentLine = "";
@@ -310,7 +350,6 @@
           if (currentLine.length + prefix.length + word.length <= limit) {
               currentLine += prefix + word;
           } else {
-              // Standard wrapping logic
               if (word.length < wordSafetyLimit) {
                   if (currentLine.length > 0) lines.push(currentLine.trimEnd());
                   currentLine = word;
