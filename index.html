@@ -152,7 +152,9 @@
     }
 
     .btn.secondary{ color: var(--term-cyan); border-color: rgba(255,255,0,0.4); }
+    .btn.danger{ color: var(--term-red); border-color: rgba(255,59,59,0.4); }
     .btn:hover{ background: var(--term-yellow); color: #000; }
+    .btn.danger:hover{ background: var(--term-red); color: #fff; }
     .btn:active{ transform: translateY(1px); }
 
     .statusbar{
@@ -193,7 +195,7 @@
         <div class="banner">EVENT INFORMATION</div>
         <div class="subbanner">
           <div class="title">66-Character Line Formatter</div>
-          <div class="hint">Tabs → 4 spaces | Newlines removed | 17-char word safety</div>
+          <div class="hint">Tabs → 4 spaces | List Detection | Blank Line Preservation</div>
         </div>
       </header>
 
@@ -205,6 +207,7 @@
 
         <section class="control-row">
           <div class="controls-group">
+            <button id="clearBtn" class="btn danger">Clear All</button>
             <button id="formatBtn" class="btn">Format <span id="formatSpinner" class="spinner hidden"></span></button>
             <button id="copyBtn" class="btn secondary">Copy Output</button>
           </div>
@@ -229,6 +232,7 @@
     const inputEl = document.getElementById('inputText');
     const outputEl = document.getElementById('output');
     const formatBtn = document.getElementById('formatBtn');
+    const clearBtn = document.getElementById('clearBtn');
     const formatSpinner = document.getElementById('formatSpinner');
     const copyBtn = document.getElementById('copyBtn');
     const inputLenEl = document.getElementById('inputLen');
@@ -256,61 +260,72 @@
       formatSpinner.classList.remove('hidden');
       announceStatus('Processing...');
 
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 50));
       
-      // Normalize: tabs to spaces, remove all existing line breaks
+      // Step 1: Normalize structure
       let str = raw.replace(/\t/g, '    ');
-      str = str.replace(/\r\n/g, '').replace(/\r/g, '').replace(/\n/g, '');
+      
+      // Use a hidden token to preserve double-newlines (list breaks)
+      const BREAK_TOKEN = " \u0007 ";
+      str = str.replace(/\n\n+/g, BREAK_TOKEN);
+      
+      // Convert single newlines to spaces for reflow
+      str = str.replace(/\n/g, ' ');
+      
+      // Collapse multiple spaces into one (Handles the "extra spaces" requirement)
+      str = str.replace(/\s\s+/g, ' ');
+      str = str.trim();
       
       const limit = 66;
-      const wordSafetyLimit = 17; // Updated from 11 to 17
+      const wordSafetyLimit = 17;
       let lines = [];
       let currentLine = "";
 
-      // Split into tokens (words and whitespace)
-      const tokens = str.split(/(\s+)/);
+      // List markers trigger (dash, bullet, or number sequence)
+      const listMarkerRegex = /^([-–—•\*]|\d+\.)$/;
+      const words = str.split(' ');
 
-      for (let token of tokens) {
-          if (token === "") continue;
+      for (let word of words) {
+          if (word === "") continue;
 
-          // Handle whitespace tokens
-          if (token.trim() === "") {
-              if (currentLine.length + token.length <= limit) {
-                  currentLine += token;
-              } else {
-                  lines.push(currentLine.trimEnd());
-                  currentLine = ""; 
-              }
-              continue;
+          // Check for hard break token (from double newlines)
+          if (word === "\u0007") {
+            if (currentLine.trim().length > 0) {
+              lines.push(currentLine.trimEnd());
+              currentLine = "";
+            }
+            continue;
           }
 
-          // Handle word tokens
-          if (currentLine.length + token.length <= limit) {
-              currentLine += token;
+          const isMarker = listMarkerRegex.test(word);
+
+          // If word is a marker OR we are forced into a new item after a colon-break
+          if (isMarker && currentLine.trim().length > 0) {
+              lines.push(currentLine.trimEnd());
+              currentLine = "";
+          }
+
+          let prefix = (currentLine.length === 0) ? "" : " ";
+          
+          if (currentLine.length + prefix.length + word.length <= limit) {
+              currentLine += prefix + word;
           } else {
-              // Word exceeds line limit
-              if (token.length < wordSafetyLimit) {
-                  // Word is short: move the whole thing to the next line
+              // Standard wrapping logic
+              if (word.length < wordSafetyLimit) {
                   if (currentLine.length > 0) lines.push(currentLine.trimEnd());
-                  currentLine = token;
+                  currentLine = word;
               } else {
-                  // Word is long (>= 17): split it at the boundary
-                  let remainingSpace = limit - currentLine.length;
-                  
-                  // Fill the rest of the current line
+                  let remainingSpace = limit - (currentLine.length + prefix.length);
                   if (remainingSpace > 0) {
-                      currentLine += token.substring(0, remainingSpace);
-                      token = token.substring(remainingSpace);
+                      currentLine += prefix + word.substring(0, remainingSpace);
+                      word = word.substring(remainingSpace);
                   }
-                  
-                  lines.push(currentLine);
-                  
-                  // Handle the rest of the long word
-                  while (token.length > limit) {
-                      lines.push(token.substring(0, limit));
-                      token = token.substring(limit);
+                  lines.push(currentLine.trimEnd());
+                  while (word.length > limit) {
+                      lines.push(word.substring(0, limit));
+                      word = word.substring(limit);
                   }
-                  currentLine = token;
+                  currentLine = word;
               }
           }
       }
@@ -330,6 +345,15 @@
     }
 
     formatBtn.addEventListener('click', formatText);
+
+    clearBtn.addEventListener('click', () => {
+      inputEl.value = '';
+      outputEl.textContent = '';
+      inputLenEl.textContent = '0';
+      outLinesEl.textContent = '0';
+      lastLenEl.textContent = '0';
+      announceStatus('Cleared.');
+    });
 
     copyBtn.addEventListener('click', () => {
       const text = outputEl.textContent;
