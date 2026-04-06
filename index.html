@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <title>66-Character Line Formatter</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
   <style>
     :root{
       --term-bg:#000000;
@@ -16,7 +15,6 @@
       --term-red:#ff3b3b;
       --term-white:#f2f2f2;
     }
-
     *{box-sizing:border-box;}
     html,body{ height: 100vh; margin: 0; overflow: hidden; }
     body{
@@ -24,12 +22,9 @@
       color:var(--term-cyan);
       font-family: Consolas, "Lucida Console", "Courier New", ui-monospace, monospace;
       display:flex;
-      align-items:center;
-      justify-content:center;
+      align-items:center;      justify-content:center;
       padding: 10px;
     }
-
-    /* Outer monitor frame */
     .frame{
       width:100%;
       height: 100%;
@@ -42,8 +37,6 @@
       display: flex;
       flex-direction: column;
     }
-
-    /* Inner screen container */
     .container{
       flex: 1;
       display: flex;
@@ -53,8 +46,6 @@
       overflow: hidden;
       position: relative;
     }
-
-    /* Yellow Header Banner */
     .banner{
       background: var(--term-yellow);
       color: #000;
@@ -72,8 +63,6 @@
       justify-content: center;
       position: relative;
     }
-
-    /* Tooltip styling */
     .info-wrapper {
       position: relative;
       display: inline-flex;
@@ -82,13 +71,11 @@
       text-transform: none;
       letter-spacing: normal;
     }
-
     .info-icon {
       font-size: 18px;
       line-height: 1;
       user-select: none;
     }
-
     .tooltip {
       visibility: hidden;
       position: absolute;
@@ -107,11 +94,9 @@
       font-weight: normal;
       font-family: inherit;
     }
-
     .info-wrapper:hover .tooltip {
       visibility: visible;
     }
-
     .subbanner{
       padding: 6px 12px;
       border-bottom: 1px solid rgba(0,255,255,0.3);
@@ -120,10 +105,8 @@
       align-items: center;
       flex-shrink: 0;
     }
-
     .subbanner .title{ font-size: 13px; font-weight: 700; color: var(--term-cyan); }
     .subbanner .hint{ font-size: 11px; color: var(--term-white); opacity: 0.7; }
-
     main{
       flex: 1;
       display: flex;
@@ -132,19 +115,11 @@
       gap: 6px;
       overflow: hidden;
     }
-
-    /* Input/Output Sections */
-    .section-box {
-      display: flex;
-      flex-direction: column;
-    }
-    
+    .section-box { display: flex; flex-direction: column; }
     .input-section { height: 35%; min-height: 80px; }
     .output-section { flex: 1; min-height: 120px; }
-
     label{ display:block; font-weight: 700; margin-bottom: 2px; font-size: 12px; color: var(--term-cyan); }
     .muted{ color: var(--term-white); opacity: 0.8; font-size: 11px; }
-
     textarea, pre{
       width:100%;
       height: 100%;
@@ -158,9 +133,7 @@
       resize: none;
       font-family: inherit;
     }
-
     textarea::placeholder { color: rgba(255,255,0,0.3); }
-
     pre{
       margin: 0;
       overflow-y: auto;
@@ -168,8 +141,6 @@
       word-wrap: break-word;
       border-color: rgba(255,255,0,0.5);
     }
-
-    /* Controls Layout */
     .control-row {
       display: flex;
       justify-content: flex-end;
@@ -178,9 +149,7 @@
       padding: 2px 0;
       flex-shrink: 0;
     }
-
     .controls-group { display: flex; gap: 12px; align-items: center; }
-    
     .btn{
       appearance:none;
       border: 1px solid rgba(0,255,255,0.7);
@@ -193,13 +162,11 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-
     .btn.secondary{ color: var(--term-cyan); border-color: rgba(255,255,0,0.4); }
     .btn.danger{ color: var(--term-red); border-color: rgba(255,59,59,0.4); }
     .btn:hover{ background: var(--term-yellow); color: #000; }
     .btn.danger:hover{ background: var(--term-red); color: #fff; }
     .btn:active{ transform: translateY(1px); }
-
     .statusbar{
       display:flex;
       gap: 15px;
@@ -209,10 +176,8 @@
       background: #050505;
       flex-shrink: 0;
     }
-
     .stat strong{ color: var(--term-yellow); }
     .promptline{ padding: 6px 12px; color: var(--term-yellow); font-weight: 700; font-size: 11px; border-top: 1px solid rgba(255,255,0,0.2); flex-shrink: 0; }
-
     .spinner{
       display:inline-block;
       width: 10px; height: 10px;
@@ -224,7 +189,6 @@
     }
     .hidden{ display:none; }
     @keyframes spin{ to{ transform: rotate(360deg);} }
-
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #000; }
     ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #555; }
@@ -244,16 +208,14 @@
         </div>
         <div class="subbanner">
           <div class="title">66-Character Line Formatter</div>
-          <div class="hint">Detects numeric, alpha, and bullet lists</div>
+          <div class="hint">Detects numeric, alpha, and special headers</div>
         </div>
       </header>
-
       <main>
         <section class="section-box input-section">
           <label for="inputText">Input Text <span class="muted">(Chars: <span id="inputLen">0</span>)</span></label>
           <textarea id="inputText" placeholder="Paste source text here..."></textarea>
         </section>
-
         <section class="control-row">
           <div class="controls-group">
             <button id="clearBtn" class="btn danger">Clear All</button>
@@ -261,13 +223,11 @@
             <button id="copyBtn" class="btn secondary">Copy Output</button>
           </div>
         </section>
-
         <section class="section-box output-section">
           <label for="output">Formatted Output (66-char width)</label>
           <pre id="output" tabindex="0"></pre>
         </section>
       </main>
-
       <div class="statusbar">
         <div class="stat">Lines: <strong><span id="outLines">0</span></strong></div>
         <div class="stat">Last Line Length: <strong><span id="lastLen">0</span></strong></div>
@@ -276,7 +236,6 @@
       <div class="promptline">C:\PENPAL\FORMATTER> <span id="promptText">Ready.</span></div>
     </div>
   </div>
-
   <script>
     const inputEl = document.getElementById('inputText');
     const outputEl = document.getElementById('output');
@@ -289,62 +248,70 @@
     const lastLenEl = document.getElementById('lastLen');
     const statusMsgEl = document.getElementById('statusMsg');
     const promptTextEl = document.getElementById('promptText');
-
     inputEl.addEventListener('input', () => {
         inputLenEl.textContent = inputEl.value.length;
     });
-
     function announceStatus(msg) {
       statusMsgEl.textContent = 'Status: ' + msg;
       promptTextEl.textContent = msg;
     }
-
     async function formatText() {
       const raw = inputEl.value || '';
       if (!raw) {
           announceStatus('Input empty.');
           return;
       }
-
       formatSpinner.classList.remove('hidden');
       announceStatus('Processing...');
-
       await new Promise(r => setTimeout(r, 50));
       
       let str = raw.replace(/\t/g, '    ');
       
+      // Define specific triggers that MUST start a new line
+      const triggerPhrases = [
+        "From:", "Sent:", "To:", "Cc:", "Subject:", 
+        "good morning", "good afternoon", "greetings"
+      ];
+      // Use a marker to identify where we should break for these phrases
       const BREAK_TOKEN = " \u0007 ";
-      str = str.replace(/\n\n+/g, BREAK_TOKEN);
-      str = str.replace(/\n/g, ' ');
-      str = str.replace(/\s\s+/g, ' ');
-      str = str.trim();
+      const DOUBLE_BREAK = " \u0008 ";
+      // Pre-process: Insert breaks before trigger phrases if they aren't at the start
+      let processedStr = str;
+      triggerPhrases.forEach(phrase => {
+        // Find phrases case-insensitively but respect boundaries
+        const regex = new RegExp(`(\\s)(${phrase})`, 'gi');
+        processedStr = processedStr.replace(regex, `${BREAK_TOKEN}$2`);
+      });
+      // Handle standard paragraph breaks
+      processedStr = processedStr.replace(/\n\n+/g, DOUBLE_BREAK);
+      processedStr = processedStr.replace(/\n/g, ' ');
+      processedStr = processedStr.replace(/\s\s+/g, ' ');
+      processedStr = processedStr.trim();
       
       const limit = 66;
       const wordSafetyLimit = 17;
       let lines = [];
       let currentLine = "";
-
       const listMarkerRegex = /^([-–—•\*]|\d+\.|[a-z]\.)$/i;
-      const words = str.split(' ');
-
+      const words = processedStr.split(' ');
       for (let word of words) {
           if (word === "") continue;
-
-          if (word === "\u0007") {
+          // If we hit a manual break or double break
+          if (word === "\u0007" || word === "\u0008") {
             if (currentLine.trim().length > 0) {
               lines.push(currentLine.trimEnd());
               currentLine = "";
             }
+            // If it was a double break, we'd normally push an empty line, 
+            // but for this specific formatter we usually just want a hard start.
             continue;
           }
-
           const isMarker = listMarkerRegex.test(word);
-
+          // Start new line for markers or if a trigger phrase was tagged (word starts with marker logic)
           if (isMarker && currentLine.trim().length > 0) {
               lines.push(currentLine.trimEnd());
               currentLine = "";
           }
-
           let prefix = (currentLine.length === 0) ? "" : " ";
           
           if (currentLine.length + prefix.length + word.length <= limit) {
@@ -368,7 +335,6 @@
               }
           }
       }
-
       if (currentLine.trimEnd().length > 0) {
           lines.push(currentLine.trimEnd());
       }
@@ -382,9 +348,7 @@
       formatSpinner.classList.add('hidden');
       announceStatus('Formatting complete.');
     }
-
     formatBtn.addEventListener('click', formatText);
-
     clearBtn.addEventListener('click', () => {
       inputEl.value = '';
       outputEl.textContent = '';
@@ -393,11 +357,9 @@
       lastLenEl.textContent = '0';
       announceStatus('Cleared.');
     });
-
     copyBtn.addEventListener('click', () => {
       const text = outputEl.textContent;
       if (!text) return;
-
       const textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.style.position = "fixed";
@@ -406,7 +368,6 @@
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-
       try {
         const successful = document.execCommand('copy');
         if (successful) {
@@ -417,7 +378,6 @@
       } catch (err) {
         announceStatus('Copy error.');
       }
-
       document.body.removeChild(textArea);
     });
   </script>
